@@ -1,0 +1,24 @@
+extends ../layout/layout.jade
+block styles
+block content
+  h1 QRCode
+  input#text.form-control(type='text', autofocus)
+  .panel.panel-default
+    .panel-heading
+      h3.panel-title Result
+    .pane-body
+      #result
+block scripts
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js', integrity='sha384-0B/45e2to395pfnCkbfqwKFFwAa7zXdvd42eAFJa3Vm8KZ/jmHdn93XdWi//7MDS', crossorigin='anonymous')
+  script.
+    $(function(){
+      var text = "";
+      $('#result').html("").qrcode({"width" : 300, "height" : 300, "text" : ""});
+      $('#text').on("keyup change", function(){
+        var new_text = $('#text').val();
+        if (new_text != text) {
+          $('#result').html("").qrcode({"width" : 300, "height" : 300, "text" : new_text});
+          text = new_text;
+        }
+      });
+    });
