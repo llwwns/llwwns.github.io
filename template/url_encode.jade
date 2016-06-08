@@ -1,0 +1,34 @@
+extends ../layout/layout.jade
+block styles
+block content
+  h1 URLEncode
+  #url_encode
+    input.form-control(type='text', autofocus, v-model="text", debounce="300")
+    label.form-control
+      input(type='checkbox', v-model="only_fragment")
+      | fragment only
+    h3.panel-title Result
+    .panel.panel-default
+      .panel-heading
+        | {{text|encode only_fragment}}
+    button.btn(data-clipboard-action='copy', data-clipboard-target='.panel-heading')
+      | Copy to clipboard
+block scripts
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.10/clipboard.min.js', integrity='sha384-f7wOtFps7eeIwcPoS0BT08o/onjsbd16QnjQmOoqVIimY7dzcSzfDU/htuPJlTFX', crossorigin='anonymous')
+  script.
+    const vm = new Vue({
+      el: '#url_encode',
+      data: {
+        text: '',
+        only_fragment: false
+      },
+    });
+    Vue.filter('encode', function(text, only_fragment) {
+      if (only_fragment) {
+        const matched = /#(.*)/.exec(text);
+          return (matched && matched.length > 1) ? text.replace(/#.*/, `#${encodeURIComponent(matched[1])}`) : text;
+      } else {
+        return encodeURIComponent(text);
+      }
+    });
+    const clipboard = new Clipboard(".btn");
