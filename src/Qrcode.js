@@ -1,9 +1,18 @@
 import React, { Component } from 'react'
 import QRCode from 'qrcode.react'
 import { Input } from 'semantic-ui-react'
-import glamorous from 'glamorous'
-const Div = glamorous.Div
+import { css } from 'glamor'
 import _ from 'lodash'
+
+const centerStyle = css({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center'
+})
+
+const marginTop = css({
+  marginTop: '30px'
+})
 
 class Qrcode extends Component {
   constructor() {
@@ -35,12 +44,12 @@ class Qrcode extends Component {
 
   render() {
     return (
-      <Div display='flex' flexDirection='column' alignItems='center'>
+      <div {...centerStyle}>
         <Input focus type="text" value={this.state.text} onChange={this.handleChange} style={{width:'100%', maxWidth: '760px'}} />
-        <Div marginTop='30px'>
+        <div{...marginTop}>
           <QRCode size={256} value={this.state.qrcode} stype={{width:'100%', height:'100%'}} />
-        </Div>
-      </Div>
+        </div>
+      </div>
     )
   }
 }
