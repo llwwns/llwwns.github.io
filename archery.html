@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Calc</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.8.6/umd/react.production.min.js" integrity="sha256-3vo65ZXn5pfsCfGM5H55X+SmwJHBlyNHPwRmWAPgJnM=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.8.6/umd/react-dom.production.min.js" integrity="sha256-qVsF1ftL3vUq8RFOLwPnKimXOLo72xguDliIxeffHRc=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/styled-components/4.2.1/styled-components.min.js" integrity="sha256-Pc+CFhUQttkHGEOv4MO6yAP24Xf530ZvtIpRI51sg/U=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.8.14/dayjs.min.js" integrity="sha256-4OyTmxDUGwg8iuJo/Thf6B/tAOmEVxoDOW1FRe+zZVM=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  </head>
+  <body style="overflow: hidden">
+    <div id="root"></div>
+    <script>
+      const h = React.createElement;
+      const Div = styled.div`
+        background: #f00;
+      `;
+      const Layout = styled.div`
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      `
+      const List = styled.div`
+        width: 100vw;
+        height: calc(100vh - 10.1vw - 18vw - 13vw - 10vh);
+        font-size: 5vw;
+      `
+      const Total = styled.div`
+        font-size: 5vw;
+        height: 13vw;
+        display: flex;
+        justify-content: space-between;
+        width: 90vw;
+      `
+
+      const Current = styled.div`
+        height: 18vw;
+        display: flex;
+        justify-content: center;
+      `
+      const Buttons = styled.div`
+        width: 100vw;
+        height: 11.1vw;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      `
+      const Button = styled.button`
+        border: 1px solid #000;
+        height: 9.1vw;
+        width: 9.1vw;
+        background: ${props => props.bg};
+        color: ${props => props.fg};
+      `
+      const Action = styled.button`
+      font-size: 3vh;
+      `
+      const Table = styled.table`
+        width: 100vw;
+        table-layout: fixed;
+        border-collapse: collapse;
+      `;
+      const CurrentTable = styled.table`
+        width: calc(100vw * 7 / 8);
+        table-layout: fixed;
+        border-collapse: collapse;
+      `;
+      const Td = styled.td`
+        height: calc(100vw / 8);
+        border: 1px solid #000;
+        vertical-align: middle;
+        text-align: center;
+      `;
+      const bgs = [
+        "#ffffff",
+        "#000000",
+        "#0004ff",
+        "#ff0000",
+        "#ffff00"
+      ];
+      const fgs = [
+        "#000000",
+        "#ffffff",
+        "#ffffff",
+        "#ffffff",
+        "#000000"
+      ];
+      const Logs = styled.div`
+        position: absolute;
+        border: solid 2px #000;
+        width: 90vw;
+        height: 90vh;
+        top: 5vh;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-items: center;
+      `
+      const LogUl = styled.ul`
+      `
+      const LogLi = styled.li`
+      height: 4vh;
+      `
+      const LogContent = styled.div`
+        height: 81vh;
+        padding: 2vh;
+        overflow-y: auto;
+      `
+      const LogButton = styled.button`
+      height: 5vh;
+      `
+      const array = n => Array(n).fill(null);
+      const savedCount = localStorage.getItem('count') || 0;
+      let savedState = savedCount && localStorage.getItem(`item_${+savedCount - 1}`);
+      savedState = savedState && JSON.parse(savedState);
+      const initialState = {
+        currentLine: 0,
+        currentValues: [],
+        values: []
+      };
+      const set = (hash) => obj => ({...obj, ...hash});
+      const idx = (i, j) => i * 6 + j;
+      const Note = () => {
+        const [{ currentValues, currentLine, values }, setState] = React.useState(savedState || initialState);
+        const [currentCount, setCurrentCount] = React.useState(savedCount ? savedCount - 1 : 0);
+        const setStateWithUndo = f => {
+          setState(state => {
+            setUndos([...undos, state]);
+            let newState = f(state);
+            let count = +localStorage.getItem('count');
+            if (!count) {
+              count = 1;
+              localStorage.setItem('count', 1);
+            }
+            localStorage.setItem(`item_${currentCount}`, JSON.stringify({...newState, at: dayjs().format("YYYY/MM/DD HH:mm")}));
+            return newState;
+          });
+        };
+        const [undos, setUndos] = React.useState([]);
+        const [showLogs, setShowLogs] = React.useState(false);
+        const sums = array(currentLine).map((_, i) =>
+          array(6).map((_, j) => values[idx(i, j)]).reduce((x, y) => x + y, 0));
+        const sums2 = sums.reduce(([arr, sum], current) => {
+          arr.push(sum + current);
+          return [arr, sum + current];
+        }
+        ,[[], 0])[0];
+        return h(Layout, null,
+          showLogs && h(Logs, null,
+            h(LogContent, null,
+            (() => {
+              let count = localStorage.getItem('count');
+              count = count ? +count : 0;
+              if (count === 0) {
+                return "No logs"
+              } else {
+                return h(LogUl, null, array(count).map((_, i) => {
+                  const item = JSON.parse(localStorage.getItem(`item_${i}`));
+                  return h(LogLi, {
+                    onClick: () => {
+                      if (i !== currentCount) {
+                        setUndos([]);
+                        setCurrentCount(i);
+                        setState(JSON.parse(localStorage.getItem(`item_${i}`)));
+                      }
+                    }
+                  }, `Score: ${item.values.reduce((a, b) => a + b, 0)}, at: ${item.at}`)
+                }))
+              }
+            })()),
+            h(LogButton, {
+              onClick: () => {
+                localStorage.setItem('count', 0);
+                setCurrentCount(0);
+                setUndos([]);
+              }
+            }, "Delete All"),
+            h(LogButton, {
+              onClick: () => {
+                setShowLogs(false);
+              }}, "Close")),
+          h(List, null,
+            h(Table, null,
+              h('tbody', null,
+                array(6).map((_, i) =>
+                  h('tr', {key: i},
+                    ...array(6).map((_, j) =>
+                      h(Td, {key:`${i}_${j}`}, values[idx(i, j)])),
+                    h(Td, null, sums[i]),
+                    h(Td, null, sums2[i])
+                  ))),
+          )),
+          h(Total, null,
+            h(Action, {
+              onClick: () => {
+                if (undos.length > 0) {
+                  setState(undos[undos.length - 1]);
+                  setUndos(undos.slice(0, undos.length - 1));
+                }
+              }
+            }, "Undo"),
+            h(Action, {
+              onClick: () => {
+                if (currentLine === 6) {
+                  let count = localStorage.getItem('count') || 1;
+                  localStorage.setItem('count', +count + 1);
+                  setState(state => {
+                    localStorage.setItem(`item_${+count - 1}`, JSON.stringify({...state, at: dayjs().format("YYYY/MM/DD HH:mm")}));
+                    localStorage.setItem(`item_${+count}`, JSON.stringify({...initialState, at: dayjs().format("YYYY/MM/DD HH:mm")}));
+                    setUndos([]);
+                    setCurrentCount(+count);
+                    return initialState;
+                  });
+                } else {
+                  setStateWithUndo(() => initialState);
+                }
+              }
+            }, currentLine === 6 ? "New": "Clear"),
+            h(Action, {
+              onClick: () => {
+                setShowLogs(true);
+              }
+            }, "Log")),
+          h(Current, null,
+            h(CurrentTable, null,
+              array(6).map((_, i) =>
+                h(Td, {
+                  onClick: () => {
+                    if (i < currentValues.length) {
+                      setStateWithUndo(set({
+                        currentValues: [
+                        ...currentValues.slice(0, i),
+                        ...currentValues.slice(i + 1)]
+                      }));
+                    }
+                  }
+                }, currentValues[i])),
+              h(Td, {
+                onClick: () => {
+                  setStateWithUndo(set({
+                    values: [...values, ...currentValues, ...Array(6 - currentValues.length).fill(0)],
+                    currentValues: [],
+                    currentLine: currentLine + 1
+                  }));
+                }
+              }, currentValues.reduce((x, y) => x + y, 0)))),
+          h(Buttons, null, array(10).map((_, i) => 10 - i).map(
+            num => h(Button, {
+              bg: bgs[(num - 1) / 2 | 0],
+              fg: fgs[(num - 1) / 2 | 0],
+              onClick: () => {
+                if (currentValues.length < 6 && currentLine < 6) {
+                  setStateWithUndo(set({currentValues: [...currentValues, num].sort((x, y) => y - x)}));
+                }
+              }
+            }, `${num}`)
+          )));
+      }
+      ReactDOM.render(
+        h(Note),
+        document.getElementById('root')
+      );
+    </script>
+  </body>
+</html>
